@@ -19,8 +19,13 @@ fun Application.configureSerialization() {
     }
     routing {
         get("/api/updater") {
-            Utils.build?.let {
-                call.respond(it)
+            call.parameters["timestamp"]?.let { timestamp ->
+                Utils.metadata?.let { meta ->
+                    Utils.timestamp?.let { buildTimestamp ->
+                        if (timestamp.toLong() < buildTimestamp.toLong())
+                            call.respond(meta)
+                    }
+                }
             }
         }
     }

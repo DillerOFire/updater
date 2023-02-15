@@ -3,21 +3,25 @@ package site.sfire.utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.html.*
 import site.sfire.models.Build
+import site.sfire.models.OtaMeta
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.security.MessageDigest
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+
 
 const val FILES_PATH = "/var/www/h5ai"
 object Utils {
 
     var build: Build? = null
         private set
+    var metadata: OtaMeta? = null
     var buildDate: String? = null
+        private set
+    var timestamp: String? = null
         private set
 
     private fun getLastModifiedFile(directoryFilePath: String): File? {
@@ -74,22 +78,17 @@ object Utils {
 
             val isOutdated = (build?.created != file.lastModified())
 
-            if (isOutdated) {
-                build = Build(
-                    name = "HentaiOS",
-                    url = "https://sfire.site/${file.name}",
-                    version = "13",
-                    size = file.length().toInt(),
-                    buildId = file.name,
-                    created = file.name.substring(58..65).toLong(),
-                    channel = "",
-                    sha256 = hashString(file)
+            timestamp = MetaUtils.extractTimestamp(file.toPath())
+
+            if (isOutdated && timestamp != null) {
+                metadata = OtaMeta(
+                    currentDownloadUrl = "https://sfire.site/${file.name}",
+                    changelogUrl = "https://api.sfire.site/api/changelog",
+                    originalFilename = file.name,
+                    sizeBytes = file.length()
                 )
-                val date = LocalDate.parse(
-                    file.name.substring(41..46),
-                    DateTimeFormatter.ofPattern("yyMMdd")
-                )
-                buildDate = date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))
+                val date = Timestamp(timestamp!!.toLong() * 1000)
+                buildDate = SimpleDateFormat("MMM dd, yyyy").format(date)
             }
         }
     }

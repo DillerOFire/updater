@@ -31,6 +31,9 @@ fun Application.configureRouting() {
                     p {
                         +"Latest build from HoloCtion. Update now to keep safe and improve device stability"
                     }
+                    a (href = "https://t.me/+RSQdf_SdHR7Ng1ut") {
+                        +"Checkout our telegram community"
+                    }
                     Utils.build?.let {
                         p { +Utils.buildDate!! }
                         p { +it.buildId }
